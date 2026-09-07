@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Раздел — Юридическая фирма «Монолит»</title>
+<meta name="description" id="pageDescription" content="Юридические услуги в Новосибирске.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%231C1A16'/%3E%3Ctext x='50' y='69' font-family='Georgia,serif' font-weight='600' font-size='54' fill='%23A9402C' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div id="navPlaceholder"></div>
+
+<main>
+  <div class="wrap breadcrumbs">
+    <a href="/">Главная</a> / <a href="/uslugi">Услуги и цены</a> / <span id="breadcrumbCurrent"></span>
+  </div>
+  <div class="category-header wrap">
+    <h1 id="categoryTitle"></h1>
+    <p class="teaser" id="categoryTeaser"></p>
+  </div>
+  <section class="section wrap" style="padding: 44px 0 76px; border-bottom: none;">
+    <div id="servicesTable"></div>
+    <p style="margin-top: 32px; font-size: 14px; color: var(--ink-faint);">Точная стоимость зависит от объёма и сложности работы — уточняйте на бесплатной первичной консультации.</p>
+    <div class="hero-actions" style="margin-top: 24px;">
+      <a href="/kontakty#contact" class="btn btn-accent">Задать вопрос</a>
+    </div>
+  </section>
+</main>
+
+<div id="footerPlaceholder"></div>
+
+<script src="/common.js"></script>
+<script>
+function slugFromPath() {
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  return parts[parts.length - 1];
+}
+
+async function loadCategory() {
+  const slug = slugFromPath();
+  try {
+    const res = await fetch('/api/service-categories/' + encodeURIComponent(slug));
+    if (!res.ok) throw new Error('Раздел не найден');
+    const category = await res.json();
+
+    setText('breadcrumbCurrent', category.title);
+    setText('categoryTitle', category.title);
+    setText('categoryTeaser', category.intro || '');
+
+    document.getElementById('servicesTable').innerHTML = renderPriceTable(category.services);
+  } catch (err) {
+    console.error('Не удалось загрузить раздел:', err);
+  }
+}
+loadCategory();
+</script>
+</body>
+</html>

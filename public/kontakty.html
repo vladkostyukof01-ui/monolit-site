@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Контакты — Юридическая фирма «Монолит» в Новосибирске</title>
+<meta name="description" content="Контакты юридической фирмы «Монолит» в Новосибирске: адрес офиса на Красном проспекте, телефон, email, режим работы. Оставьте заявку прямо с сайта.">
+<link rel="canonical" href="https://ЗАМЕНИТЕ-НА-ДОМЕН.ru/kontakty">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%231C1A16'/%3E%3Ctext x='50' y='69' font-family='Georgia,serif' font-weight='600' font-size='54' fill='%23A9402C' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<meta property="og:title" content="Контакты — Юридическая фирма «Монолит»">
+<meta property="og:description" content="Адрес, телефон, email, режим работы юридической фирмы в Новосибирске.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://ЗАМЕНИТЕ-НА-ДОМЕН.ru/img/og-cover.png">
+<meta name="robots" content="index, follow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div id="navPlaceholder"></div>
+
+<main>
+  <div class="page-header wrap">
+    <span class="eyebrow">Контакты</span>
+    <h1>Как нас найти</h1>
+  </div>
+
+  <section class="section wrap" style="padding-top: 48px;">
+    <p style="font-size: 17px; color: var(--ink); margin-bottom: 24px; font-family: var(--font-display);" id="legalAddress"></p>
+    <div class="map-embed">
+      <iframe src="" id="mapFrame" loading="lazy" title="Карта проезда"></iframe>
+    </div>
+  </section>
+
+  <section class="section contact-section" id="contact" style="border-bottom: none;">
+    <div class="wrap">
+      <div class="file-block">
+        <div class="file-head">
+          <h2>Оставьте заявку — мы перезвоним</h2>
+          <span class="stamp-label">принято к производству</span>
+        </div>
+        <div class="file-grid contact-grid">
+          <div class="file-fields">
+            <dl>
+              <div><dt>Телефон</dt><dd id="contactPhone"></dd><dd class="sub" id="contactWorkHours"></dd></div>
+              <div><dt>Доп. телефон</dt><dd id="contactPhoneAlt"></dd></div>
+              <div><dt>Email</dt><dd id="contactEmail"></dd></div>
+            </dl>
+          </div>
+          <form class="file-form" id="leadForm">
+            <div class="ff-field"><label for="fname">Имя</label><input type="text" id="fname" placeholder="Как к вам обращаться" required></div>
+            <div class="ff-field"><label for="fphone">Телефон</label><input type="tel" id="fphone" placeholder="+7 (___) ___-__-__" required></div>
+            <div class="ff-field"><label for="fmessage">Сообщение</label><textarea id="fmessage" rows="3" placeholder="Кратко опишите вашу ситуацию"></textarea></div>
+            <label class="ff-consent"><input type="checkbox" id="fconsent" required><span>Я согласен(на) на <a href="/privacy" target="_blank" rel="noopener">обработку персональных данных</a></span></label>
+            <button type="submit" class="btn btn-accent">Отправить</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="footerPlaceholder"></div>
+
+<script src="/common.js"></script>
+<script>
+async function loadContacts() {
+  try {
+    const settings = await loadSettingsGlobal();
+    setText('contactPhone', settings.phone || '');
+    setText('contactPhoneAlt', settings.phone_alt || '');
+    setText('contactEmail', settings.email || '');
+    setText('contactWorkHours', settings.work_hours || '');
+    setText('legalAddress', settings.legal_address || '');
+    if (settings.map_embed_url) {
+      document.getElementById('mapFrame').src = settings.map_embed_url;
+    }
+  } catch (err) {
+    console.error('Не удалось загрузить контакты:', err);
+  }
+}
+loadContacts();
+
+const leadForm = document.getElementById('leadForm');
+if (leadForm) {
+  leadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('fname').value;
+    const phone = document.getElementById('fphone').value;
+    const message = document.getElementById('fmessage').value;
+    const consent = document.getElementById('fconsent').checked;
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, message, consent, source: 'kontakty-form' }),
+      });
+      if (!res.ok) throw new Error('Ошибка отправки');
+      leadForm.innerHTML = '<p style="font-family: var(--font-display); font-size: 17px;">Спасибо! Мы свяжемся с вами в ближайшее время.</p>';
+    } catch (err) {
+      alert('Не удалось отправить заявку. Попробуйте позвонить нам напрямую.');
+    }
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админ-панель — Юридическая фирма «Монолит»</title>
+<style>
+  :root {
+    --ink: #1C1E24; --ink-soft: #4B4E58; --ink-faint: #7C7F8A;
+    --panel: #F0EEE8; --line: #DCD8CC;
+    --accent: #B98A4A; --accent-deep: #7C5726; --accent-pale: #F3E8D6;
+    --danger: #B3453D; --success: #2F4A3E;
+    --radius: 4px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font); background: #fff; color: var(--ink); font-size: 14.5px; line-height: 1.5; }
+  a { color: inherit; }
+  input, select, textarea, button { font-family: inherit; font-size: inherit; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .topbar b { font-size: 17px; }
+  .topbar .who { color: var(--ink-faint); font-size: 13px; }
+
+  .layout { display: flex; min-height: calc(100vh - 57px); }
+  .sidebar { width: 220px; flex-shrink: 0; border-right: 1px solid var(--line); padding: 20px 0; background: var(--panel); overflow-y: auto; }
+  .sidebar button { display: block; width: 100%; text-align: left; padding: 10px 24px; border: none; background: transparent; color: var(--ink-soft); cursor: pointer; font-size: 13.5px; }
+  .sidebar button:hover { background: var(--accent-pale); }
+  .sidebar button.active { background: var(--accent-pale); color: var(--ink); font-weight: 600; border-right: 3px solid var(--accent-deep); }
+
+  .content { flex: 1; padding: 28px 32px; max-width: 980px; overflow-y: auto; }
+  .content h1 { font-size: 21px; margin: 0 0 6px; }
+  .content .subtitle { color: var(--ink-faint); margin: 0 0 22px; font-size: 13.5px; }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px; }
+  .card h2 { font-size: 14.5px; margin: 0 0 12px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 5px; }
+  .field input, .field textarea, .field select { width: 100%; padding: 8px 11px; border-radius: 4px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
+  .field textarea { resize: vertical; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 4px; border: none; background: var(--accent-deep); color: #fff; font-weight: 600; cursor: pointer; }
+  .btn:hover { background: var(--accent); }
+  .btn.secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .btn.small { padding: 6px 11px; font-size: 12.5px; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+
+  .login-wrap { max-width: 360px; margin: 10vh auto; padding: 32px; }
+  .login-wrap h1 { font-size: 21px; margin-bottom: 4px; }
+  .login-wrap p { color: var(--ink-faint); margin-bottom: 22px; font-size: 13.5px; }
+  .error-msg { color: var(--danger); font-size: 13px; margin-top: 8px; min-height: 18px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+  th { color: var(--ink-faint); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; }
+
+  .service-item { border: 1px dashed var(--line); border-radius: 6px; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 2fr 1fr; gap: 10px; align-items: start; }
+  .hidden { display: none !important; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13.5px; opacity: 0; transform: translateY(8px); transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-wrap">
+  <h1>Админ-панель</h1>
+  <p>Юридическая фирма «Монолит» — управление сайтом.</p>
+  <div class="field"><label for="loginUsername">Логин</label><input type="text" id="loginUsername" autocomplete="username"></div>
+  <div class="field"><label for="loginPassword">Пароль</label><input type="password" id="loginPassword" autocomplete="current-password"></div>
+  <button class="btn" id="loginBtn" style="width:100%; justify-content:center;">Войти</button>
+  <p class="error-msg" id="loginError"></p>
+</div>
+
+<div id="adminApp" class="hidden">
+  <div class="topbar">
+    <b>Монолит · Админ-панель</b>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <span class="who" id="whoAmI"></span>
+      <button class="btn secondary small" id="logoutBtn">Выйти</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <button class="nav-btn active" data-view="settings">Настройки сайта</button>
+      <button class="nav-btn" data-view="services">Прайс-лист</button>
+      <button class="nav-btn" data-view="leads">Заявки</button>
+      <button class="nav-btn" data-view="security">Безопасность</button>
+    </div>
+    <div class="content">
+
+      <!-- SETTINGS -->
+      <div id="view-settings" class="view">
+        <h1>Настройки сайта</h1>
+        <p class="subtitle">Тексты главной страницы и контактные данные.</p>
+        <div class="card">
+          <h2>Главная страница</h2>
+          <div class="field"><label for="s_brand_name">Название в шапке</label><input type="text" id="s_brand_name"></div>
+          <div class="field"><label for="s_hero_eyebrow">Надпись над заголовком</label><input type="text" id="s_hero_eyebrow"></div>
+          <div class="field"><label for="s_hero_title">Заголовок</label><input type="text" id="s_hero_title"></div>
+          <div class="field"><label for="s_hero_lede">Текст-пояснение</label><textarea id="s_hero_lede" rows="3"></textarea></div>
+        </div>
+        <div class="card">
+          <h2>О компании</h2>
+          <div class="field"><label for="s_about_text">Текст (разделяйте абзацы новой строкой)</label><textarea id="s_about_text" rows="6"></textarea></div>
+        </div>
+        <div class="card">
+          <h2>Контакты</h2>
+          <div class="field"><label for="s_phone">Телефон</label><input type="text" id="s_phone"></div>
+          <div class="field"><label for="s_phone_alt">Доп. телефон</label><input type="text" id="s_phone_alt"></div>
+          <div class="field"><label for="s_phone_fax">Телефон/факс</label><input type="text" id="s_phone_fax"></div>
+          <div class="field"><label for="s_email">Email</label><input type="text" id="s_email"></div>
+          <div class="field"><label for="s_work_hours">Режим работы</label><input type="text" id="s_work_hours"></div>
+          <div class="field"><label for="s_legal_address">Адрес</label><input type="text" id="s_legal_address"></div>
+          <div class="field"><label for="s_map_embed_url">Ссылка на карту (Яндекс.Карты, встраиваемая)</label><input type="text" id="s_map_embed_url"></div>
+        </div>
+        <button class="btn" id="saveSettingsBtn">Сохранить настройки</button>
+      </div>
+
+      <!-- SERVICES -->
+      <div id="view-services" class="view hidden">
+        <h1>Прайс-лист</h1>
+        <p class="subtitle">Разделы и позиции с ценами. Название раздела и вводный текст редактируются прямо здесь; цены — через поля позиции.</p>
+        <div id="servicesList"></div>
+      </div>
+
+      <!-- LEADS -->
+      <div id="view-leads" class="view hidden">
+        <h1>Заявки</h1>
+        <p class="subtitle">Обращения с форм сайта.</p>
+        <table>
+          <thead><tr><th>Дата</th><th>Имя</th><th>Телефон</th><th>Сообщение</th><th>Источник</th><th>Статус</th></tr></thead>
+          <tbody id="leadsBody"></tbody>
+        </table>
+      </div>
+
+      <!-- SECURITY -->
+      <div id="view-security" class="view hidden">
+        <h1>Безопасность</h1>
+        <p class="subtitle">Логин и пароль для входа в админ-панель.</p>
+        <div class="card">
+          <h2>Смена логина</h2>
+          <div class="field"><label for="newUsername">Новый логин</label><input type="text" id="newUsername" autocomplete="username"></div>
+          <div class="field"><label for="usernamePassword">Текущий пароль (для подтверждения)</label><input type="password" id="usernamePassword" autocomplete="current-password"></div>
+          <button class="btn" id="changeUsernameBtn">Сменить логин</button>
+          <p class="error-msg" id="usernameMsg"></p>
+        </div>
+        <div class="card">
+          <h2>Смена пароля</h2>
+          <div class="field"><label for="newPassword">Новый пароль</label><input type="password" id="newPassword" autocomplete="new-password"></div>
+          <button class="btn" id="changePasswordBtn">Сменить пароль</button>
+          <p class="error-msg" id="passwordMsg"></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let csrfToken = null;
+let currentUsername = null;
+
+function $(sel) { return document.querySelector(sel); }
+function esc(str) { return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+function escAttr(str) { return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#B3453D' : '#1C1E24';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (opts.method && opts.method !== 'GET') headers['X-CSRF-Token'] = csrfToken;
+  const res = await fetch(path, { ...opts, headers, credentials: 'same-origin' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Ошибка запроса');
+  return data;
+}
+
+// ============ AUTH ============
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  try {
+    const data = await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+    csrfToken = data.csrfToken;
+    currentUsername = data.username;
+    enterApp();
+  } catch (err) {
+    document.getElementById('loginError').textContent = err.message;
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await api('/api/admin/logout', { method: 'POST' });
+  location.reload();
+});
+
+async function checkSession() {
+  try {
+    const data = await api('/api/admin/me');
+    csrfToken = data.csrfToken;
+    currentUsername = data.username;
+    enterApp();
+  } catch (err) {
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+}
+
+function enterApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('adminApp').classList.remove('hidden');
+  document.getElementById('whoAmI').textContent = currentUsername;
+  loadSettingsView();
+  loadServicesView();
+  loadLeadsView();
+}
+
+// ============ NAV ============
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    document.getElementById('view-' + btn.dataset.view).classList.remove('hidden');
+  });
+});
+
+// ============ SETTINGS ============
+async function loadSettingsView() {
+  const settings = await api('/api/settings');
+  const map = {
+    s_brand_name: 'brand_name', s_hero_eyebrow: 'hero_eyebrow', s_hero_title: 'hero_title', s_hero_lede: 'hero_lede',
+    s_about_text: 'about_text', s_phone: 'phone', s_phone_alt: 'phone_alt', s_phone_fax: 'phone_fax',
+    s_email: 'email', s_work_hours: 'work_hours', s_legal_address: 'legal_address', s_map_embed_url: 'map_embed_url',
+  };
+  Object.entries(map).forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.value = settings[key] || ''; });
+}
+document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+  const map = {
+    s_brand_name: 'brand_name', s_hero_eyebrow: 'hero_eyebrow', s_hero_title: 'hero_title', s_hero_lede: 'hero_lede',
+    s_about_text: 'about_text', s_phone: 'phone', s_phone_alt: 'phone_alt', s_phone_fax: 'phone_fax',
+    s_email: 'email', s_work_hours: 'work_hours', s_legal_address: 'legal_address', s_map_embed_url: 'map_embed_url',
+  };
+  const payload = {};
+  Object.entries(map).forEach(([id, key]) => { payload[key] = document.getElementById(id).value; });
+  try { await api('/api/admin/settings', { method: 'PUT', body: JSON.stringify(payload) }); showToast('Настройки сохранены'); }
+  catch (err) { showToast(err.message, true); }
+});
+
+// ============ SERVICES (прайс-лист) ============
+async function loadServicesView() {
+  const categories = await api('/api/service-categories');
+  const container = document.getElementById('servicesList');
+  const detailed = await Promise.all(categories.map(c => api('/api/service-categories/' + c.slug)));
+  container.innerHTML = detailed.map(cat => `
+    <div class="card">
+      <div class="field"><label>Название раздела</label><input type="text" data-role="cat-title" data-id="${cat.id}" value="${escAttr(cat.title)}"></div>
+      <div class="field"><label>Вводный текст</label><textarea data-role="cat-intro" data-id="${cat.id}" rows="2">${esc(cat.intro || '')}</textarea></div>
+      <h2>Позиции (${cat.services.length})</h2>
+      ${cat.services.map(s => `
+        <div class="service-item">
+          <div class="field" style="margin-bottom:0;"><label>Название услуги</label><input type="text" data-role="s-title" data-id="${s.id}" value="${escAttr(s.title)}"></div>
+          <div class="field" style="margin-bottom:0;"><label>Цена (текст)</label><input type="text" data-role="s-price" data-id="${s.id}" value="${escAttr(s.price_note)}"></div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  container.querySelectorAll('[data-role="cat-title"]').forEach(el => el.addEventListener('change', () => updateCategoryField(el.dataset.id, 'title', el.value)));
+  container.querySelectorAll('[data-role="cat-intro"]').forEach(el => el.addEventListener('change', () => updateCategoryField(el.dataset.id, 'intro', el.value)));
+  container.querySelectorAll('[data-role="s-title"]').forEach(el => el.addEventListener('change', () => updateServiceField(el.dataset.id, 'title', el.value)));
+  container.querySelectorAll('[data-role="s-price"]').forEach(el => el.addEventListener('change', () => updateServiceField(el.dataset.id, 'price_note', el.value)));
+}
+async function updateCategoryField(id, field, value) {
+  try { await api(`/api/admin/service-categories/${id}`, { method: 'PUT', body: JSON.stringify({ [field]: value }) }); showToast('Сохранено'); }
+  catch (err) { showToast(err.message, true); }
+}
+async function updateServiceField(id, field, value) {
+  try { await api(`/api/admin/services/${id}`, { method: 'PUT', body: JSON.stringify({ [field]: value }) }); showToast('Сохранено'); }
+  catch (err) { showToast(err.message, true); }
+}
+
+// ============ LEADS ============
+async function loadLeadsView() {
+  const leads = await api('/api/admin/leads');
+  const tbody = $('#leadsBody');
+  if (!leads.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-faint);">Заявок пока нет.</td></tr>'; return; }
+  tbody.innerHTML = leads.map(l => `
+    <tr>
+      <td>${formatDate(l.created_at)}</td>
+      <td>${esc(l.name || '—')}</td>
+      <td>${esc(l.phone || '—')}</td>
+      <td>${esc(l.message || '—')}</td>
+      <td>${esc(l.source || '')}</td>
+      <td>
+        <select data-role="lead-status" data-id="${l.id}">
+          <option value="new" ${l.status === 'new' ? 'selected' : ''}>Новая</option>
+          <option value="in_progress" ${l.status === 'in_progress' ? 'selected' : ''}>В работе</option>
+          <option value="done" ${l.status === 'done' ? 'selected' : ''}>Завершена</option>
+        </select>
+      </td>
+    </tr>
+  `).join('');
+  tbody.querySelectorAll('[data-role="lead-status"]').forEach(el => {
+    el.addEventListener('change', async () => {
+      try { await api(`/api/admin/leads/${el.dataset.id}`, { method: 'PUT', body: JSON.stringify({ status: el.value }) }); showToast('Статус обновлён'); }
+      catch (err) { showToast(err.message, true); }
+    });
+  });
+}
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'Z');
+  return d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+// ============ SECURITY ============
+document.getElementById('changePasswordBtn').addEventListener('click', async () => {
+  const newPassword = document.getElementById('newPassword').value;
+  try {
+    await api('/api/admin/change-password', { method: 'POST', body: JSON.stringify({ newPassword }) });
+    document.getElementById('passwordMsg').style.color = 'var(--success)';
+    document.getElementById('passwordMsg').textContent = 'Пароль изменён.';
+    document.getElementById('newPassword').value = '';
+  } catch (err) {
+    document.getElementById('passwordMsg').style.color = 'var(--danger)';
+    document.getElementById('passwordMsg').textContent = err.message;
+  }
+});
+document.getElementById('changeUsernameBtn').addEventListener('click', async () => {
+  const newUsername = document.getElementById('newUsername').value;
+  const currentPassword = document.getElementById('usernamePassword').value;
+  try {
+    const data = await api('/api/admin/change-username', { method: 'POST', body: JSON.stringify({ newUsername, currentPassword }) });
+    currentUsername = data.username;
+    document.getElementById('whoAmI').textContent = currentUsername;
+    document.getElementById('usernameMsg').style.color = 'var(--success)';
+    document.getElementById('usernameMsg').textContent = 'Логин изменён.';
+    document.getElementById('usernamePassword').value = '';
+  } catch (err) {
+    document.getElementById('usernameMsg').style.color = 'var(--danger)';
+    document.getElementById('usernameMsg').textContent = err.message;
+  }
+});
+
+checkSession();
+</script>
+</body>
+</html>
