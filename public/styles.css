@@ -74,7 +74,7 @@ section[id] { scroll-margin-top: 90px; }
 .registry-inner { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
 .registry-case { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; text-decoration: none; font-family: var(--font-mono); font-size: 13px; color: var(--ink-soft); }
 .registry-case-num { white-space: nowrap; }
-.registry-case b { font-family: var(--font-display); font-weight: 600; font-size: 16px; color: var(--ink); }
+.registry-case-brand { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--ink); }
 .registry-links { display: flex; align-items: center; gap: 28px; list-style: none; flex-wrap: wrap; }
 .registry-links > li > a { text-decoration: none; font-size: 14.5px; font-weight: 600; color: var(--ink); border-bottom: 1px solid transparent; padding-bottom: 2px; }
 .registry-links > li > a:hover { border-color: var(--rust); color: var(--rust-deep); }
