@@ -10,7 +10,7 @@ const settings = {
   phone_alt: '+7 383 222-50-52',
   phone_fax: '+7 383 203-48-00',
   email: 'monolit-ooo@mail.ru',
-  work_hours: 'Пн–Пт, 09:00–18:00 (по предварительной записи)',
+  work_hours: 'уточняется по телефону',
   legal_address: 'г. Новосибирск, Красный проспект, 42, оф. 410, 4 этаж (ост. «Площадь Ленина»)',
   map_embed_url: 'https://yandex.ru/map-widget/v1/?lang=ru_RU&scroll=true&source=constructor-api&um=constructor%3A1c51b3847257e8dfe55305317e92e9db466f934a56056efaec6503472629e7dc',
 };

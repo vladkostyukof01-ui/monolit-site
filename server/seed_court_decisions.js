@@ -35,6 +35,10 @@ const decisions = [
   { file: 'reshenie_suda_026.pdf', title: 'Решение об изменении долей в праве общей долевой собственности на жилой дом и земельный участок', sort_order: 28 },
   { file: 'reshenie_suda_028.pdf', title: 'Решение о взыскании задолженности', sort_order: 29 },
   { file: 'reshenie_suda_029.pdf', title: 'Решение об установлении факта родственных отношений', sort_order: 30 },
+  { file: 'reshenie_suda_031.pdf', title: 'Решение об освобождении земельного участка', sort_order: 31 },
+  { file: 'reshenie_suda_032.pdf', title: 'Решение об определении места жительства ребёнка с отцом', sort_order: 32 },
+  { file: 'reshenie_suda_033.pdf', title: 'Решение о взыскании алиментов', sort_order: 33 },
+  { file: 'reshenie_suda_034.pdf', title: 'Решение о взыскании алиментов дочери с отца', sort_order: 34 },
 ];
 
 module.exports = { decisions };

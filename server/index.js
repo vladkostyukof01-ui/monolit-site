@@ -74,8 +74,9 @@ app.get('/api/service-categories/:slug', (req, res) => {
   res.json({ ...category, services });
 });
 
-// Для калькулятора примерной стоимости — все категории со всеми позициями сразу,
-// клиент считает диапазон на лету без похода на сервер при каждом клике.
+// Все категории со всеми позициями прайс-листа сразу (не используется отдельной
+// страницей-калькулятором — такой страницы нет; оставлено для возможного будущего
+// использования клиентом без похода на сервер при каждом клике).
 app.get('/api/price-index', (req, res) => {
   const categories = db.prepare('SELECT id, slug, title FROM service_categories ORDER BY sort_order').all();
   const allServices = db.prepare('SELECT id, category_id, title, price_note, price_from, price_to FROM services ORDER BY sort_order').all();
@@ -118,9 +119,16 @@ app.post('/api/admin/login', loginLimiter, (req, res) => {
   if (!verifyAdmin(username, password)) {
     return res.status(401).json({ error: 'Неверный логин или пароль.' });
   }
-  req.session.adminUsername = username;
-  const csrfToken = issueCsrfToken(req);
-  res.json({ ok: true, username, csrfToken });
+  // Регенерация session ID при логине — защита от session fixation (старый ID,
+  // выданный до аутентификации, становится бесполезным для атакующего).
+  req.session.regenerate((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Не удалось создать сессию. Попробуйте снова.' });
+    }
+    req.session.adminUsername = username;
+    const csrfToken = issueCsrfToken(req);
+    res.json({ ok: true, username, csrfToken });
+  });
 });
 
 app.post('/api/admin/logout', (req, res) => {
@@ -137,8 +145,8 @@ app.get('/api/admin/me', (req, res) => {
 
 app.post('/api/admin/change-password', requireAuth, (req, res) => {
   const { newPassword } = req.body || {};
-  if (!newPassword || newPassword.length < 6) {
-    return res.status(400).json({ error: 'Пароль должен быть не короче 6 символов.' });
+  if (!newPassword || newPassword.length < 10) {
+    return res.status(400).json({ error: 'Пароль должен быть не короче 10 символов.' });
   }
   changePassword(req.session.adminUsername, newPassword);
   res.json({ ok: true });
@@ -240,7 +248,7 @@ app.get('/uslugi/:slug', (req, res) => {
   const template = fs.readFileSync(path.join(__dirname, '..', 'public', 'category.html'), 'utf8');
   const title = escapeHtml(category.title + ' — Юридическая фирма «Монолит», Новосибирск');
   const description = escapeHtml((category.intro || 'Юридические услуги в Новосибирске.')).slice(0, 160);
-  const canonical = `https://ЗАМЕНИТЕ-НА-ДОМЕН.ru/uslugi/${escapeHtml(req.params.slug)}`;
+  const canonical = `https://monolit-site.onrender.com/uslugi/${escapeHtml(req.params.slug)}`;
   const html = template
     .replace('<title id="pageTitle">Раздел — Юридическая фирма «Монолит»</title>', `<title id="pageTitle">${title}</title>`)
     .replace(
