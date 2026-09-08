@@ -13,4 +13,4 @@ services:
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
-        value: monolit2026demo
+        sync: false
