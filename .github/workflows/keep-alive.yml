@@ -22,7 +22,7 @@ jobs:
           )
           fail=0
           for url in "${urls[@]}"; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$url" || echo "000")
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$url" || echo "000")
             echo "$url -> HTTP $code"
             if [ "$code" = "000" ]; then
               fail=1
