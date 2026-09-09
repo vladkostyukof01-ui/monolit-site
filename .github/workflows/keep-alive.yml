@@ -1,0 +1,31 @@
+name: Keep-alive demo sites
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping all demo sites
+        run: |
+          urls=(
+            "https://monolit-site.onrender.com/"
+            "https://beguchka-site.onrender.com/"
+            "https://aqua96-site.onrender.com/"
+            "https://bezlekmed-site.onrender.com/"
+            "https://planetazdorovya-site-1.onrender.com/"
+            "https://vechnost-site.onrender.com/"
+            "https://krasbiomed-site.onrender.com/"
+          )
+          fail=0
+          for url in "${urls[@]}"; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$url" || echo "000")
+            echo "$url -> HTTP $code"
+            if [ "$code" = "000" ]; then
+              fail=1
+            fi
+          done
+          exit $fail
