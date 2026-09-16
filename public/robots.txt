@@ -1,6 +1,2 @@
 User-agent: *
-Allow: /
-Disallow: /admin
-
-# После получения домена раскомментировать и подставить адрес:
-# Sitemap: https://ваш-домен.ru/sitemap.xml
+Disallow: /
